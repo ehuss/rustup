@@ -15,7 +15,7 @@
 
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use cfg_if::cfg_if;
 use rs_tracing::*;
 
@@ -27,6 +27,7 @@ use rustup::cli::self_update;
 use rustup::cli::setup_mode;
 use rustup::currentprocess::{process, with, OSProcess};
 use rustup::env_var::RUST_RECURSION_COUNT_MAX;
+use rustup::errors::RustupError;
 use rustup::utils::utils;
 use rustup::{DUP_TOOLS, TOOLS};
 
@@ -59,7 +60,9 @@ fn run_rustup_inner() -> Result<utils::ExitCode> {
 
     // Before we do anything else, ensure we know where we are and who we
     // are because otherwise we cannot proceed usefully.
-    process().current_dir()?;
+    process()
+        .current_dir()
+        .context(RustupError::LocatingWorkingDir)?;
     utils::current_exe()?;
 
     // The name of arg0 determines how the program is going to behave
